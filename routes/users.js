@@ -8,8 +8,8 @@ const {
 
 const router = express.Router();
 
-router.get('/signIn', signInHandler);
-router.get('/signUp', signUpHandler);
+router.post('/signIn', signInHandler);
+router.post('/signUp', signUpHandler);
 router.get('/logout', logOutHandler);
 router.get('/:userId', getSingleUserHandler);
 
