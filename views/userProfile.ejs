@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Lots</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+        .container {
+            width: 100%;
+            padding: 20px;
+        }
+        .lot {
+            width: 100%;
+            margin-bottom: 20px;
+            padding: 20px;
+            background-color: #f0f0f0;
+            border: 1px solid #ddd;
+        }
+        .lot h3 {
+            margin-top: 0;
+        }
+        .lot-selector {
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>My Lots</h1>
+        <% for (let i = 0; i < lots.length; i++) { %>
+            <div class="lot">
+                <h3><%= lots[i].name %></h3>
+                <p><%= lots[i].description %></p>
+                <div class="lot-selector">
+                    <label for="status-<%= lots[i].id %>">Status:</label>
+                    <select id="status-<%= lots[i].id %>" name="status">
+                        <option value="active" <%= lots[i].status === '1' ? 'selected' : '' %>>Active</option>
+                        <option value="inactive" <%= lots[i].status === '0' ? 'selected' : '' %>>Inactive</option>
+                    </select>
+                </div>
+            </div>
+        <% } %>
+    </div>
+
+</body>
+</html>
