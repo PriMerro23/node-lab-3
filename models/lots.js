@@ -1,8 +1,8 @@
 const lots = [];
 
 class Lot {
-    static STATUS_ACTIVE = 'active';
-    static STATUS_INACTIVE = 'inactive';
+    static STATUS_ACTIVE = true;
+    static STATUS_INACTIVE = false;
 
     constructor(
         id,
@@ -14,7 +14,7 @@ class Lot {
         startTime,
         endTime,
         userId,
-        image
+        //image
     ) {
         this.id = id;
         this.title = title;
@@ -25,7 +25,7 @@ class Lot {
         this.startTime = new Date(startTime);
         this.endTime = new Date(endTime);
         this.userId = userId;
-        this.image = image;
+        //this.image = image;
     }
 }
 

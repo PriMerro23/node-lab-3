@@ -31,6 +31,38 @@ class LotsController {
         }
     }
 
+    async updateLotStatus(req, res) {
+        try {
+            const lotId = parseInt(req.params.lotId);
+            const { newStatus } = req.body;
+
+            // Перевірка авторизації
+            if (!req.session || !req.session.userId) {
+                return res.status(401).json({ error: 'Необхідна авторизація' });
+            }
+
+            const userId = req.session.userId;
+
+            // Перевірка прав власника
+            const lot = await db.query('SELECT user_id FROM lots WHERE id = $1', [lotId]);
+
+            if (lot.rows.length === 0) {
+                return res.status(404).json({ error: 'Лот не знайдено' });
+            }
+
+            if (lot.rows[0].user_id !== userId) {
+                return res.status(403).json({ error: 'Недостатньо прав' });
+            }
+
+            // Оновлення статусу
+            await db.query('UPDATE lots SET status = $1 WHERE id = $2', [newStatus, lotId]);
+            res.json({ success: true });
+        } catch (error) {
+            console.error(error);
+            res.status(500).json({ error: 'Помилка сервера' });
+        }
+    }
+
     async getSingleLot(req, res) {
         try {
             const lotId = parseInt(req.params.lotId);
@@ -56,27 +88,40 @@ class LotsController {
 
     async createSingleLot(req, res) {
         try {
-            const { userId, title, description, startPrice, status, image } =
-                req.body;
+            const { userId, title, description, startPrice, status } = req.body;
+
+            // Перевірка авторизації для API
+            let userIdToUse = userId;
+
+            // Якщо запит через API і є сесія, використовуємо ID з сесії
+            if (req.session && req.session.userId) {
+                userIdToUse = req.session.userId;
+            }
+
+            // Перевірка обов'язкових полів
+            if (!title || !description || !startPrice || !userIdToUse) {
+                return res.status(400).json({
+                    error: 'Не всі обов\'язкові поля заповнені'
+                });
+            }
 
             const startTime = new Date();
-
             const endTime = new Date();
-            endTime.setDate(startTime.getDate() + 7);
+            endTime.setDate(startTime.getDate() + 7); // Лот активний 7 днів
 
+            const lotStatus = status === undefined ? true : Boolean(status);
             const newLot = await db.query(
-                `INSERT INTO lots (user_id, title, description, start_price, current_price, status, start_time, end_time, image) 
+                `INSERT INTO lots (user_id, title, description, start_price, current_price, status, start_time, end_time) 
                  VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING *`,
                 [
-                    userId,
+                    userIdToUse,
                     title,
                     description,
                     startPrice,
-                    startPrice,
-                    status,
+                    startPrice, // поточна ціна дорівнює початковій
+                    status, // за замовчуванням активний
                     startTime,
                     endTime,
-                    image || null,
                 ]
             );
 
@@ -92,7 +137,25 @@ class LotsController {
 
     async deleteSingleLot(req, res) {
         try {
-            const lotId = parseInt(req.params.id);
+            const lotId = parseInt(req.params.lotId);
+
+            // Перевірка авторизації
+            if (!req.session || !req.session.userId) {
+                return res.status(401).json({ error: 'Необхідна авторизація' });
+            }
+
+            const userId = req.session.userId;
+
+            // Перевірка прав власника
+            const lot = await db.query('SELECT user_id FROM lots WHERE id = $1', [lotId]);
+
+            if (lot.rows.length === 0) {
+                return res.status(404).json({ error: 'Лот не знайдено' });
+            }
+
+            if (lot.rows[0].user_id !== userId) {
+                return res.status(403).json({ error: 'Недостатньо прав' });
+            }
 
             const deletedLot = await db.query(
                 `DELETE FROM lots WHERE id = $1 RETURNING *`,

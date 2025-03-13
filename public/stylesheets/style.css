@@ -15,6 +15,16 @@ header {
     border-bottom: 1px solid navy;
 }
 
+a.logo {
+    text-decoration: none;
+    color: navy;
+    display: inline-block;
+}
+
+a.logo:hover {
+    color: #0000b3;
+}
+
 .logo {
     margin-left: 25px;
     font-size: 50px;
@@ -108,4 +118,147 @@ header {
     color: white;
     text-decoration: none;
     border-radius: 5px;
+}
+
+.status-indicator {
+    display: inline-block;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    margin-left: 5px;
+}
+
+.status-indicator.active {
+    background-color: #28a745;
+}
+
+.status-indicator.inactive {
+    background-color: #dc3545;
+}
+
+/* Стилі для профілю */
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+.create-lot-section {
+    background: #f8f9fa;
+    padding: 25px;
+    border-radius: 10px;
+    margin: 30px 0;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.form-group {
+    margin-bottom: 20px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 600;
+    color: navy;
+}
+
+.form-group input[type="text"],
+.form-group textarea,
+.form-group input[type="number"],
+.form-group select {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid navy;
+    border-radius: 5px;
+    font-size: 16px;
+    transition: border-color 0.3s ease;
+}
+
+.form-group input[type="text"]:focus,
+.form-group textarea:focus,
+.form-group input[type="number"]:focus,
+.form-group select:focus {
+    outline: none;
+    border-color: rgb(120, 120, 233);
+    box-shadow: 0 0 0 2px rgba(120, 120, 233, 0.2);
+}
+
+.button {
+    background-color: rgb(120, 120, 233);
+    color: white;
+    padding: 12px 25px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 16px;
+    transition: background-color 0.3s ease;
+}
+
+.button:hover {
+    background-color: #6c6ce5;
+}
+
+/* Стилі для списку лотів */
+#lots-container {
+    margin-top: 30px;
+}
+
+.lot {
+    background: white;
+    padding: 20px;
+    border-radius: 10px;
+    margin-bottom: 20px;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+    position: relative;
+}
+
+.delete-lot-button {
+    background: #dc3545;
+    color: white;
+    padding: 8px 15px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.delete-lot-button:hover {
+    background: #c82333;
+}
+
+.status-select {
+    padding: 5px;
+    border: 1px solid navy;
+    border-radius: 4px;
+    background: white;
+    margin-left: 10px;
+}
+
+/* Стилі для хедера профілю */
+.profile {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+}
+
+.logout-button {
+    background: #dc3545;
+    color: white;
+    padding: 8px 15px;
+    border-radius: 5px;
+    text-decoration: none;
+    transition: background-color 0.3s ease;
+}
+
+.logout-button:hover {
+    background: #c82333;
+}
+
+.error-message {
+    background: #ffe3e6;
+    color: #dc3545;
+    padding: 15px;
+    border-radius: 5px;
+    margin: 20px 0;
+    border: 1px solid #ffc9d2;
 }

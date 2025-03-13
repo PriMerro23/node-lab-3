@@ -54,6 +54,10 @@ class OffersController {
             res.status(400).json({ error: 'Error creating offer' });
         }
     }
+    async showCreateOfferForm(req, res) {
+        const lotId = req.query.lotId;
+        res.render('createOffer', { lotId });
+    }
 }
 
 module.exports = new OffersController();

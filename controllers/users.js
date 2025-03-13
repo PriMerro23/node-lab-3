@@ -15,13 +15,12 @@ class UserController {
                 [fname, sname, hashedPassword]
             );
 
-            res.status(201).json({
-                message: 'User registered successfully',
-                user: newUser.rows[0],
-            });
+            // Після успішної реєстрації встановлюємо сесію та переходимо на профіль
+            req.session.userId = newUser.rows[0].id;
+            res.redirect('/users/profile');
         } catch (error) {
             console.error(error);
-            res.status(500).json({ error: 'Internal server error' });
+            res.render('auth/signUp', { error: 'Помилка при реєстрації. Спробуйте ще раз.' });
         }
     }
 
@@ -29,35 +28,80 @@ class UserController {
         try {
             const { fname, password } = req.body;
 
+            // Пошук користувача в БД
             const userResult = await db.query(
                 `SELECT * FROM users WHERE fname = $1`,
                 [fname]
             );
+
             if (userResult.rows.length === 0) {
-                return res
-                    .status(401)
-                    .json({ error: 'Invalid username or password' });
+                return res.render('auth/signIn', {
+                    error: 'Невірний логін або пароль'
+                });
             }
 
             const user = userResult.rows[0];
 
-            const isPasswordValid = await bcrypt.compare(
-                password,
-                user.password
-            );
+            // Перевірка пароля
+            const isPasswordValid = await bcrypt.compare(password, user.password);
             if (!isPasswordValid) {
-                return res
-                    .status(401)
-                    .json({ error: 'Invalid username or password' });
+                return res.render('auth/signIn', {
+                    error: 'Невірний логін або пароль'
+                });
             }
 
-            res.status(200).json({
-                message: 'User logged in successfully',
-                user: { id: user.id, fname: user.fname, sname: user.sname },
+            // Встановлення сесії
+            req.session.userId = user.id;
+            res.redirect('/users/profile');
+        } catch (error) {
+            console.error(error);
+            res.render('auth/signIn', {
+                error: 'Помилка сервера'
+            });
+        }
+    }
+
+    async getUserProfile(req, res) {
+        try {
+            // Перевірка авторизації
+            if (!req.session || !req.session.userId) {
+                return res.redirect('/users/signIn');
+            }
+
+            // Отримання ID авторизованого користувача
+            const userId = req.session.userId;
+
+            // Завантаження даних користувача
+            const userResult = await db.query(
+                `SELECT id, fname, sname FROM users WHERE id = $1`,
+                [userId]
+            );
+
+            if (userResult.rows.length === 0) {
+                // Видаляємо недійсну сесію
+                req.session.destroy();
+                return res.redirect('/users/signIn');
+            }
+
+            // Завантаження лотів користувача
+            const lotsResult = await db.query(
+                `SELECT * FROM lots WHERE user_id = $1 ORDER BY start_time DESC`,
+                [userId]
+            );
+
+            // Рендеринг шаблону з даними
+            res.render('userProfile', {
+                user: userResult.rows[0],
+                lots: lotsResult.rows,
+                error: null
             });
         } catch (error) {
             console.error(error);
-            res.status(500).json({ error: 'Internal server error' });
+            res.render('userProfile', {
+                error: 'Помилка сервера',
+                user: null,
+                lots: []
+            });
         }
     }
 
@@ -86,7 +130,18 @@ class UserController {
     }
 
     logOutHandler(req, res) {
-        res.status(200).json({ message: 'User logged out successfully' });
+        req.session.destroy((err) => {
+            if (err) {
+                console.error('Error destroying session:', err);
+                return res.status(500).send('Помилка сервера');
+            }
+
+            res.clearCookie('connect.sid');
+
+            res.setHeader('Cache-Control', 'no-store');
+
+            res.redirect('/users/signIn');
+        });
     }
 }
 
