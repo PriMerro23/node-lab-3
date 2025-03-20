@@ -12,7 +12,7 @@ class LotsController {
         } catch (error) {
             console.error(error);
             if (!res.headersSent) {
-                res.status(500).json({ error: 'Internal server error' });
+                res.status(500).json({ error: 'Помилка сервера' });
             }
         }
     }
@@ -27,7 +27,7 @@ class LotsController {
             res.json(lots.rows);
         } catch (error) {
             console.error(error);
-            res.status(500).json({ error: 'Internal server error' });
+            res.status(500).json({ error: 'Помилка сервера' });
         }
     }
 
@@ -66,26 +66,31 @@ class LotsController {
     async getSingleLot(req, res) {
         try {
             const lotId = parseInt(req.params.lotId);
-
+    
             if (isNaN(lotId)) {
-                return res.status(400).json({ error: 'Invalid lot ID' });
+                return res.status(400).json({ error: 'Недійсний ідентифікатор лоту' });
             }
-
-            const lot = await db.query(`SELECT * FROM lots WHERE id = $1`, [
-                lotId,
-            ]);
-
+    
+            // Отримуємо дані лота
+            const lot = await db.query(`SELECT * FROM lots WHERE id = $1`, [lotId]);
+    
             if (lot.rows.length === 0) {
-                return res.status(404).json({ error: 'Lot not found' });
+                return res.status(404).send("Лот не знайдено");
             }
-
-            res.json(lot.rows[0]);
+    
+            // Отримуємо кількість ставок
+            const offerCount = await db.query(`SELECT COUNT(*) FROM offers WHERE lot_id = $1`, [lotId]);
+    
+            res.render("lot", { 
+                lot: lot.rows[0], 
+                offerCount: offerCount.rows[0].count 
+            });
         } catch (error) {
             console.error(error);
-            res.status(500).json({ error: 'Internal server error' });
+            res.status(500).send("Помилка сервера");
         }
     }
-
+    
     async createSingleLot(req, res) {
         try {
             const { userId, title, description, startPrice, status } = req.body;
@@ -129,7 +134,7 @@ class LotsController {
         } catch (error) {
             console.error('Error creating lot:', error);
             res.status(400).json({
-                error: 'Error creating lot',
+                error: 'Помилка створення лоту',
                 details: error.message,
             });
         }
@@ -200,6 +205,7 @@ class LotsController {
             res.status(500).json({ error: 'Internal server error' });
         }
     }
+    
 }
 
 module.exports = new LotsController();
