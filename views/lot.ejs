@@ -1,178 +1,93 @@
 <!DOCTYPE html>
 <html lang="uk">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title><%= lot.title %></title>
+        <script src="/js/lotPage.js"></script>
+        <link rel="stylesheet" href="/stylesheets/lotOfferPage.css" />
+    </head>
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>
-        <%= lot.title %>
-    </title>
-    <link rel="stylesheet" href="/stylesheets/style.css">
-</head>
+    <body>
+        <header>
+            <a href="/" class="logo">Lotify</a>
+            <div class="search-bar">
+                <input type="search" placeholder="Пошук..." />
+                <button>Пошук</button>
+            </div>
+            <div class="profile">
+                <a href="/users/profile">Профіль</a>
+            </div>
+        </header>
 
-<body>
-    <header>
-        <a href="/" class="logo">Lotify</a>
-        <div class="search-bar">
-            <input type="search" placeholder="Пошук..." />
-            <button>Пошук</button>
-        </div>
-        <div class="profile">
-            <a href="/users/profile">Профіль</a>
-        </div>
-    </header>
+        <main>
+            <div class="container">
+                <!-- Заголовок -->
+                <h1 class="lot-title"><%= lot.title %></h1>
+                <p class="lot-description"><%= lot.description %></p>
 
-    <main>
-        <div class="container">
-            <!-- Заголовок -->
-            <h1 class="lot-title">
-                <%= lot.title %>
-            </h1>
-            <p class="lot-description">
-                <%= lot.description %>
-            </p>
-
-            <!-- Інформація про ставки -->
-            <div class="lot-info">
-                <div>
-                    <p><strong>Ставок:</strong> <span id="bidCount">
-                            <%= offerCount %>
-                        </span></p>
-                    <p><strong>Макс. ставка:</strong> <span class="price">
-                            <%= lot.current_price ? lot.current_price : lot.start_price %> грн
-                        </span></p>
+                <!-- Інформація про ставки -->
+                <div class="lot-info">
+                    <div>
+                        <p>
+                            <strong>Ставок:</strong>
+                            <span id="bidCount"> <%= offerCount %> </span>
+                        </p>
+                        <p>
+                            <strong>Макс. ставка:</strong>
+                            <span class="price">
+                                <%= lot.current_price ? lot.current_price :
+                                lot.start_price %> грн
+                            </span>
+                        </p>
+                    </div>
+                    <div>
+                        <p>
+                            <strong>Дата початку:</strong> <%= lot.start_time ?
+                            new Date(lot.start_time).toLocaleDateString('uk-UA')
+                            : 'Невідома дата' %>
+                        </p>
+                        <p>
+                            <strong>Дата завершення:</strong> <%= lot.end_time ?
+                            new Date(lot.end_time).toLocaleDateString('uk-UA') :
+                            'Невідома дата' %>
+                        </p>
+                    </div>
                 </div>
-                <div>
-                    <p><strong>Дата додавання:</strong>
-                        <%= lot.start_time ? new Date(lot.start_time).toLocaleString("uk-UA") : "Не вказано" %>
+
+                <!-- Зображення -->
+                <div class="lot-image">
+                    <img
+                        src="<%= lot.image_url ? lot.image_url : '/images/default.jpg' %>"
+                        alt="Фото лота"
+                    />
+                </div>
+
+                <!-- Поле для ставок -->
+                <div class="lot-bid">
+                    <p class="current-price">
+                        Поточна ціна: <%= lot.current_price ? lot.current_price
+                        : lot.start_price %> грн
                     </p>
+                    <div class="bid-controls">
+                        <button class="btn minus">-</button>
+                        <input
+                            type="number"
+                            min="<%= lot.current_price ? lot.current_price + 1 : lot.start_price + 1 %>"
+                            value="<%= lot.current_price ? lot.current_price + 1 : lot.start_price + 1 %>"
+                        />
+                        <button class="btn plus">+</button>
+                    </div>
+                    <button class="btn bid-btn">Зробити ставку</button>
                 </div>
             </div>
 
-            <!-- Зображення -->
-            <div class="lot-image">
-                <img src="<%= lot.image_url ? lot.image_url : '/images/default.jpg' %>" alt="Фото лота">
-            </div>
-
-            <!-- Інформація про закінчення -->
-            <div class="lot-end">
-                <p><strong>Закінчення:</strong>
-                    <%= lot.end_time ? new Date(lot.end_time).toLocaleString("uk-UA") : "Не вказано" %>
-                </p>
-                <p><strong>До закінчення:</strong> <span id="timeLeft">...</span></p>
-            </div>
-
-            <!-- Поле для ставок -->
-            <div class="lot-bid">
-                <p class="current-price">Поточна ціна: <%= lot.current_price ? lot.current_price : lot.start_price %>
-                        грн</p>
-                <div class="bid-controls">
-                    <button class="btn minus">-</button>
-                    <input type="number" min="<%= lot.current_price ? lot.current_price + 1 : lot.start_price + 1 %>"
-                        value="<%= lot.current_price ? lot.current_price + 1 : lot.start_price + 1 %>">
-                    <button class="btn plus">+</button>
-                </div>
-                <button class="btn bid-btn">Зробити ставку</button>
-            </div>
-        </div>
-
-        <div id="lotData" data-lot-id="<%= lot.id %>"
-            data-current-price="<%= lot.current_price ? lot.current_price : lot.start_price %>"
-            data-end-time="<%= lot.end_time ? new Date(lot.end_time).getTime() : '' %>">
-        </div>
-    </main>
-
-    <script>
-        document.addEventListener("DOMContentLoaded", () => {
-            const lotData = document.getElementById("lotData");
-            const lotId = Number(lotData.dataset.lotId);
-            let currentPrice = Number(lotData.dataset.currentPrice);
-            const endTime = Number(lotData.dataset.endTime);
-
-            const bidInput = document.querySelector(".bid-controls input");
-            const bidButton = document.querySelector(".bid-btn");
-            const minusButton = document.querySelector(".btn.minus");
-            const plusButton = document.querySelector(".btn.plus");
-            const bidCount = document.getElementById("bidCount");
-            const currentPriceElement = document.querySelector(".current-price");
-
-            // Оновлення таймера
-            function updateTimer() {
-                if (!endTime) return;
-                const now = new Date().getTime();
-                const remainingTime = endTime - now;
-                if (remainingTime <= 0) {
-                    timeLeft.textContent = "Аукціон завершено";
-                    bidButton.disabled = true;
-                    return;
-                }
-                const hours = Math.floor(remainingTime / (1000 * 60 * 60));
-                const minutes = Math.floor((remainingTime % (1000 * 60 * 60)) / (1000 * 60));
-                const seconds = Math.floor((remainingTime % (1000 * 60)) / 1000);
-                timeLeft.textContent = `${hours} год ${minutes} хв ${seconds} сек`;
-            }
-            setInterval(updateTimer, 1000);
-            updateTimer();
-
-            // Оновлення мінімальної ціни після ставки
-            function updateMinBidValue() {
-                bidInput.min = currentPrice + 1;
-                bidInput.value = currentPrice + 1;
-            }
-
-            // Логіка кнопок + і -
-            minusButton.addEventListener("click", () => {
-                let value = parseFloat(bidInput.value);
-                if (value > currentPrice + 1) {
-                    bidInput.value = value - 1;
-                }
-            });
-
-            plusButton.addEventListener("click", () => {
-                bidInput.value = parseFloat(bidInput.value) + 1;
-            });
-
-            // Відправка ставки
-            bidButton.addEventListener("click", async () => {
-                const offerPrice = parseFloat(bidInput.value);
-
-                if (isNaN(offerPrice) || offerPrice <= currentPrice) {
-                    alert("Ставка має бути більшою за поточну ціну!");
-                    return;
-                }
-
-                try {
-                    const response = await fetch("/offers", {
-                        method: "POST",
-                        headers: {
-                            "Content-Type": "application/json",
-                        },
-                        body: JSON.stringify({ lotId, offerPrice })
-                    });
-
-                    const data = await response.json();
-                    if (response.ok) {
-                        // Оновлюємо UI без перезавантаження
-                        currentPrice = offerPrice;
-                        bidCount.textContent = data.totalBids;
-                        currentPriceElement.textContent = `Поточна ціна: ${offerPrice} грн`;
-                        updateMinBidValue();
-                        alert("Ставку зроблено успішно!");
-                    } else {
-                        alert(data.error || "Помилка при створенні ставки");
-                    }
-                } catch (error) {
-                    console.error("Помилка:", error);
-                    alert("Сталася помилка під час створення ставки!");
-                }
-            });
-        });
-        // Динамічне підлаштування ширини інпуту під довжину числа
-        bidInput.addEventListener("input", function () {
-            this.style.width = `${this.value.length + 1}ch`;
-        });
-    </script>
-
-</body>
-
+            <div
+                id="lotData"
+                data-lot-id="<%= lot.id %>"
+                data-current-price="<%= lot.current_price ? lot.current_price : lot.start_price %>"
+                data-end-time="<%= lot.end_time ? new Date(lot.end_time).getTime() : '' %>"
+            ></div>
+        </main>
+    </body>
 </html>

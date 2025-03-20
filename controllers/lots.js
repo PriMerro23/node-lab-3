@@ -4,10 +4,10 @@ class LotsController {
     async getLots(req, res, returnData = false) {
         try {
             const lots = await db.query(`SELECT * FROM lots`);
-            if (returnData) return lots.rows; // Тепер можна без проблем використовувати в render()
+            if (returnData) return lots.rows;
 
             if (!res.headersSent) {
-                res.json(lots.rows); // Відправляємо відповідь лише один раз
+                res.json(lots.rows);
             }
         } catch (error) {
             console.error(error);
@@ -36,15 +36,16 @@ class LotsController {
             const lotId = parseInt(req.params.lotId);
             const { newStatus } = req.body;
 
-            // Перевірка авторизації
             if (!req.session || !req.session.userId) {
                 return res.status(401).json({ error: 'Необхідна авторизація' });
             }
 
             const userId = req.session.userId;
 
-            // Перевірка прав власника
-            const lot = await db.query('SELECT user_id FROM lots WHERE id = $1', [lotId]);
+            const lot = await db.query(
+                'SELECT user_id FROM lots WHERE id = $1',
+                [lotId]
+            );
 
             if (lot.rows.length === 0) {
                 return res.status(404).json({ error: 'Лот не знайдено' });
@@ -54,8 +55,10 @@ class LotsController {
                 return res.status(403).json({ error: 'Недостатньо прав' });
             }
 
-            // Оновлення статусу
-            await db.query('UPDATE lots SET status = $1 WHERE id = $2', [newStatus, lotId]);
+            await db.query('UPDATE lots SET status = $1 WHERE id = $2', [
+                newStatus,
+                lotId,
+            ]);
             res.json({ success: true });
         } catch (error) {
             console.error(error);
@@ -66,53 +69,59 @@ class LotsController {
     async getSingleLot(req, res) {
         try {
             const lotId = parseInt(req.params.lotId);
-    
+
             if (isNaN(lotId)) {
-                return res.status(400).json({ error: 'Недійсний ідентифікатор лоту' });
+                return res
+                    .status(400)
+                    .json({ error: 'Недійсний ідентифікатор лоту' });
             }
-    
-            // Отримуємо дані лота
-            const lot = await db.query(`SELECT * FROM lots WHERE id = $1`, [lotId]);
-    
+
+            const lot = await db.query(`SELECT * FROM lots WHERE id = $1`, [
+                lotId,
+            ]);
+
             if (lot.rows.length === 0) {
-                return res.status(404).send("Лот не знайдено");
+                return res.status(404).send('Лот не знайдено');
             }
-    
-            // Отримуємо кількість ставок
-            const offerCount = await db.query(`SELECT COUNT(*) FROM offers WHERE lot_id = $1`, [lotId]);
-    
-            res.render("lot", { 
-                lot: lot.rows[0], 
-                offerCount: offerCount.rows[0].count 
+
+            const offerCount = await db.query(
+                `SELECT COUNT(*) FROM offers WHERE lot_id = $1`,
+                [lotId]
+            );
+
+            res.render('lot', {
+                lot: lot.rows[0],
+                offerCount: offerCount.rows[0].count,
             });
         } catch (error) {
             console.error(error);
-            res.status(500).send("Помилка сервера");
+            res.status(500).send('Помилка сервера');
         }
     }
-    
+
     async createSingleLot(req, res) {
         try {
-            const { userId, title, description, startPrice, status } = req.body;
+            const {
+                userId,
+                title,
+                description,
+                startPrice,
+                status,
+                startTime,
+                endTime,
+            } = req.body;
 
-            // Перевірка авторизації для API
             let userIdToUse = userId;
 
-            // Якщо запит через API і є сесія, використовуємо ID з сесії
             if (req.session && req.session.userId) {
                 userIdToUse = req.session.userId;
             }
 
-            // Перевірка обов'язкових полів
             if (!title || !description || !startPrice || !userIdToUse) {
                 return res.status(400).json({
-                    error: 'Не всі обов\'язкові поля заповнені'
+                    error: "Не всі обов'язкові поля заповнені",
                 });
             }
-
-            const startTime = new Date();
-            const endTime = new Date();
-            endTime.setDate(startTime.getDate() + 7); // Лот активний 7 днів
 
             const lotStatus = status === undefined ? true : Boolean(status);
             const newLot = await db.query(
@@ -123,8 +132,8 @@ class LotsController {
                     title,
                     description,
                     startPrice,
-                    startPrice, // поточна ціна дорівнює початковій
-                    status, // за замовчуванням активний
+                    startPrice,
+                    status,
                     startTime,
                     endTime,
                 ]
@@ -144,15 +153,16 @@ class LotsController {
         try {
             const lotId = parseInt(req.params.lotId);
 
-            // Перевірка авторизації
             if (!req.session || !req.session.userId) {
                 return res.status(401).json({ error: 'Необхідна авторизація' });
             }
 
             const userId = req.session.userId;
 
-            // Перевірка прав власника
-            const lot = await db.query('SELECT user_id FROM lots WHERE id = $1', [lotId]);
+            const lot = await db.query(
+                'SELECT user_id FROM lots WHERE id = $1',
+                [lotId]
+            );
 
             if (lot.rows.length === 0) {
                 return res.status(404).json({ error: 'Лот не знайдено' });
@@ -162,19 +172,23 @@ class LotsController {
                 return res.status(403).json({ error: 'Недостатньо прав' });
             }
 
+            await db.query('DELETE FROM offers WHERE lot_id = $1', [lotId]);
+
             const deletedLot = await db.query(
-                `DELETE FROM lots WHERE id = $1 RETURNING *`,
+                'DELETE FROM lots WHERE id = $1 RETURNING *',
                 [lotId]
             );
 
             if (deletedLot.rows.length === 0) {
-                return res.status(404).json({ error: 'Lot not found' });
+                return res.status(404).json({ error: 'Лот не знайдено' });
             }
 
-            res.status(200).json({ message: 'Lot deleted successfully' });
+            res.status(200).json({
+                message: 'Лот та всі офери видалено успішно',
+            });
         } catch (error) {
             console.error(error);
-            res.status(500).json({ error: 'Internal server error' });
+            res.status(500).json({ error: 'Внутрішня помилка сервера' });
         }
     }
 
@@ -205,7 +219,6 @@ class LotsController {
             res.status(500).json({ error: 'Internal server error' });
         }
     }
-    
 }
 
 module.exports = new LotsController();

@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Мій профіль | Lotify</title>
-    <link rel="stylesheet" href="/stylesheets/style.css">
+    <link rel="stylesheet" href="/stylesheets/userPage.css">
 </head>
 
 <header>
@@ -21,15 +21,43 @@
 
 <body>
     <div class="container">
-        <h1>Профіль користувача: <%= user.fname %>
-                <%= user.sname %>
-        </h1>
 
         <% if (error) { %>
             <div class="error-message">
                 <%= error %>
             </div>
             <% } %>
+            <h2 class="title">Мої лоти</h2>
+                <div id="lots-container">
+                    <% if (lots && lots.length> 0) { %>
+                        <% lots.forEach(lot=> { %>
+                            <div class="lot">
+                                <h3>
+                                    <%= lot.title %>
+                                </h3>
+                                <p>
+                                    <%= lot.description %>
+                                </p>
+                                <br>
+                                <p>Початкова ціна: <%= lot.start_price %> ₴</p>
+                                <p>Поточна ціна: <%= lot.current_price %> ₴</p>
+                                <br>
+                                <p>Дата початку: <%= new Date(lot.start_time).toLocaleDateString('uk-UA') %></p>
+                                <p>Дата завершення: <%= new Date(lot.end_time).toLocaleDateString('uk-UA') %></p>
+
+                                <br>
+                                <p>Статус:
+                                    <select class="status-select" data-lot-id="<%= lot.id %>">
+                                        <option value="true" <%=lot.status ? 'selected' : '' %>>Активний</option>
+                                        <option value="false" <%=!lot.status ? 'selected' : '' %>>Неактивний</option>
+                                    </select>
+                                    <span class="status-indicator <%= lot.status ? 'active' : 'inactive' %>"></span>
+                                </p>
+                                <button class="delete-lot-button" data-lot-id="<%= lot.id %>">Видалити</button>
+                            </div>
+                            <% }); %>
+                                <% } %>
+                </div>
                 <!-- Форма для створення нового лоту -->
                 <div class="create-lot-section">
                     <h2>Створити новий лот</h2>
@@ -47,6 +75,14 @@
                         <div class="form-group">
                             <label for="startPrice">Початкова ціна:</label>
                             <input type="number" id="startPrice" name="startPrice" min="1" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="startTime">Дата початку:</label>
+                            <input type="date" id="startTime" name="startTime" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="endTime">Дата завершення:</label>
+                            <input type="date" id="endTime" name="endTime" required>
                         </div>
 
                         <div class="form-group">
@@ -66,32 +102,7 @@
                     </form>
                 </div>
 
-                <h2>Мої лоти</h2>
-                <div id="lots-container">
-                    <% if (lots && lots.length> 0) { %>
-                        <% lots.forEach(lot=> { %>
-                            <div class="lot">
-                                <h3>
-                                    <%= lot.title %>
-                                </h3>
-                                <p>
-                                    <%= lot.description %>
-                                </p>
-                                <p>Початкова ціна: <%= lot.start_price %> $</p>
-                                <p>Поточна ціна: <%= lot.current_price %> $</p>
-
-                                <p>Статус:
-                                    <select class="status-select" data-lot-id="<%= lot.id %>">
-                                        <option value="true" <%=lot.status ? 'selected' : '' %>>Активний</option>
-                                        <option value="false" <%=!lot.status ? 'selected' : '' %>>Неактивний</option>
-                                    </select>
-                                    <span class="status-indicator <%= lot.status ? 'active' : 'inactive' %>"></span>
-                                </p>
-                                <button class="delete-lot-button" data-lot-id="<%= lot.id %>">Видалити</button>
-                            </div>
-                            <% }); %>
-                                <% } %>
-                </div>
+                
     </div>
 
     <script>
@@ -126,7 +137,9 @@
                 description: formData.get('description'),
                 startPrice: parseFloat(formData.get('startPrice')),
                 status: formData.get('status'),
-                image: formData.get('image') || null
+                image: formData.get('image') || null,
+                startTime: formData.get('startTime'),  
+                endTime: formData.get('endTime')
             };
 
             try {
@@ -146,6 +159,7 @@
                 alert(error.message);
             }
         });
+
 
         // Обробник видалення лоту
         document.querySelectorAll('.delete-lot-button').forEach(button => {
