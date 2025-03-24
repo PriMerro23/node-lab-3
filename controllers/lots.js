@@ -109,6 +109,7 @@ class LotsController {
                 status,
                 startTime,
                 endTime,
+                image,
             } = req.body;
 
             let userIdToUse = userId;
@@ -125,8 +126,8 @@ class LotsController {
 
             const lotStatus = status === undefined ? true : Boolean(status);
             const newLot = await db.query(
-                `INSERT INTO lots (user_id, title, description, start_price, current_price, status, start_time, end_time) 
-                 VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING *`,
+                `INSERT INTO lots (user_id, title, description, start_price, current_price, status, start_time, end_time, image) 
+                 VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING *`,
                 [
                     userIdToUse,
                     title,
@@ -136,6 +137,7 @@ class LotsController {
                     status,
                     startTime,
                     endTime,
+                    image,
                 ]
             );
 

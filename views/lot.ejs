@@ -58,8 +58,8 @@
                 <!-- Зображення -->
                 <div class="lot-image">
                     <img
-                        src="<%= lot.image_url ? lot.image_url : '/images/default.jpg' %>"
-                        alt="Фото лота"
+                        src="<%= lot.image ? lot.image : '/images/placeholder.jpg' %>"
+                        alt="<%= lot.title %>"
                     />
                 </div>
 

@@ -14,7 +14,7 @@ class Lot {
         startTime,
         endTime,
         userId,
-        //image
+        image
     ) {
         this.id = id;
         this.title = title;
@@ -25,7 +25,7 @@ class Lot {
         this.startTime = new Date(startTime);
         this.endTime = new Date(endTime);
         this.userId = userId;
-        //this.image = image;
+        this.image = image;
     }
 }
 
