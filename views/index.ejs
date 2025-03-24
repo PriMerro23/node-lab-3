@@ -21,8 +21,9 @@
 
         <main>
             <div class="lots">
-                <% if (lots && lots.length> 0) { %> <%
-                lots.forEach(function(lot) { %>
+                <% if (lots && lots.length > 0) { %> <% let activeLots =
+                lots.filter(lot => lot.status); %> <% if (activeLots.length > 0)
+                { %> <% activeLots.forEach(function(lot) { %>
                 <div class="lot">
                     <img
                         src="<%= lot.image ? lot.image : '/images/placeholder.jpg' %>"
@@ -34,13 +35,13 @@
                         <p>Початкова ціна: <%= lot.start_price %></p>
                         <p>Ціна: <%= lot.current_price %></p>
                     </div>
-
                     <a class="more" href="/lots/<%= lot.id %>"
                         >Дізнатись більше</a
                     >
-                    <!-- <a class="offer" href="/offers/?lotId=<%= lot.id %>">Your Offer</a> -->
                 </div>
                 <% }); %> <% } else { %>
+                <p>Наразі немає активних лотів.</p>
+                <% } %> <% } else { %>
                 <p>На даний момент немає доступних лотів.</p>
                 <% } %>
             </div>
