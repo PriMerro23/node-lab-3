@@ -205,14 +205,14 @@ class LotsController {
             }
 
             const foundLots = await db.query(
-                `SELECT * FROM lots WHERE title ILIKE $1`,
+                `SELECT * FROM lots WHERE title ILIKE $1 OR description ILIKE $1`,
                 [`%${title}%`]
             );
 
             if (foundLots.rows.length === 0) {
                 return res
                     .status(404)
-                    .json({ error: 'No lots found with this title' });
+                    .json({ error: 'No lots found with this title or description' });
             }
 
             res.json(foundLots.rows);
