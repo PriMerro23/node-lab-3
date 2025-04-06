@@ -81,7 +81,12 @@ class LotsController {
             ]);
 
             if (lot.rows.length === 0) {
-                return res.status(404).send('Лот не знайдено');
+                return res.status(404).json({ error: 'Лот не знайдено' });
+            }
+
+            const acceptHeader = req.headers.accept;
+            if (acceptHeader && acceptHeader.includes('application/json')) {
+                return res.json(lot.rows[0]);
             }
 
             const offerCount = await db.query(
@@ -148,6 +153,45 @@ class LotsController {
                 error: 'Помилка створення лоту',
                 details: error.message,
             });
+        }
+    }
+
+    async updateSingleLot(req, res) {
+        try {
+            const lotId = parseInt(req.params.lotId);
+            const { title, description, startPrice, status, startTime, endTime, image } = req.body;
+
+            if (!req.session || !req.session.userId) {
+                return res.status(401).json({ error: 'Необхідна авторизація' });
+            }
+
+            const userId = req.session.userId;
+
+            const lot = await db.query(
+                'SELECT user_id FROM lots WHERE id = $1',
+                [lotId]
+            );
+
+            if (lot.rows.length === 0) {
+                return res.status(404).json({ error: 'Лот не знайдено' });
+            }
+
+            if (lot.rows[0].user_id !== userId) {
+                return res.status(403).json({ error: 'Недостатньо прав' });
+            }
+
+            const updatedLot = await db.query(
+                `UPDATE lots 
+            SET title = $1, description = $2, start_price = $3, status = $4, start_time = $5, end_time = $6, image = $7 
+            WHERE id = $8 
+            RETURNING *`,
+                [title, description, startPrice, status, startTime, endTime, image, lotId]
+            );
+
+            res.json(updatedLot.rows[0]);
+        } catch (error) {
+            console.error(error);
+            res.status(500).json({ error: 'Помилка сервера' });
         }
     }
 
